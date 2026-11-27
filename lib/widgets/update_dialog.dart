@@ -15,7 +15,7 @@ import '../native.dart';
 /// snag_version.txt holds the latest version on line 1, matching pubspec.yaml
 /// (e.g. `1.0.1+2`). Beside it are snag_latest.apk for phones and
 /// snag_latest.zip (the Windows release zip) for PCs.
-const _base = 'https://hub.adgoose/apps';
+const _base = 'https://hub.adgoose/files';
 const _versionUrl = '$_base/snag_version.txt';
 const _apkUrl = '$_base/snag_latest.apk';
 const _zipUrl = '$_base/snag_latest.zip';

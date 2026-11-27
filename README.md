@@ -20,7 +20,7 @@ Every push to `main` builds both and publishes a release named after the version
 - Spotify music is DRM protected, so Snag never downloads from Spotify. For a Spotify playlist, album or track it reads the track names, finds each song on YouTube, flags any match that looks wrong (different length, live or cover version) and downloads the YouTube copy with Spotify's title, artist and album in the tags.
 - Settings hold the defaults (MP3 320, 1080p MP4, save folders, theme). The options sheet can change them for one download.
 - yt-dlp can update itself from Settings. Do that when a site stops working.
-- Both apps check http://hub.adgoose/apps/snag_version.txt for updates, like the other family apps, and download snag_latest.apk (phone) or snag_latest.zip (PC) from beside it.
+- Both apps check http://hub.adgoose/files/snag_version.txt for updates, like the other family apps, and download snag_latest.apk (phone) or snag_latest.zip (PC) from beside it.
 
 ## Code Map
 
