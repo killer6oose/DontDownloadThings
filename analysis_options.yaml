@@ -1,0 +1,15 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # package:flutter/material.dart is deprecated in the newest Flutter in favour of
+    # material_ui, but it's what the Flutter on the build PC uses.
+    deprecated_member_use: ignore
+    deprecated_member_use_from_same_package: ignore
+  exclude:
+    - build/**
+    - android/**
+    - web/**
+    - rules-test/**
+    - tool/**
+    - windows/**
