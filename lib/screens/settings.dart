@@ -167,7 +167,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
           ]),
           section('Saving', [
-            if (!Native.isPhone) ...[
+            if (Native.isWeb)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Text(
+                  'Downloads are kept on the Pi in its Music and Videos folders, and each one is also saved '
+                  'to this device through the browser.',
+                  style: TextStyle(fontSize: 13, color: c.muted),
+                ),
+              )
+            else if (!Native.isPhone) ...[
               ListTile(
                 title: const Text('Music folder'),
                 subtitle: Text(p.audioFolder),
@@ -241,13 +250,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               title: Text('Snag $_appVersion'),
               subtitle: _updateStatus.isEmpty ? null : Text(_updateStatus),
-              trailing: TextButton(
-                onPressed: () async {
-                  final status = await checkForUpdate(context, force: true);
-                  if (mounted) setState(() => _updateStatus = status);
-                },
-                child: const Text('Check for update'),
-              ),
+              trailing: Native.isWeb
+                  ? null
+                  : TextButton(
+                      onPressed: () async {
+                        final status = await checkForUpdate(context, force: true);
+                        if (mounted) setState(() => _updateStatus = status);
+                      },
+                      child: const Text('Check for update'),
+                    ),
             ),
           ]),
           Text(

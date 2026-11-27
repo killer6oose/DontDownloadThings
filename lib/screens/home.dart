@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(children: [
                   Icon(Icons.download_rounded, size: 56, color: c.ring),
                   const SizedBox(height: 8),
-                  Text('Share a video or song to Snag, or paste a link above.',
+                  Text(Native.isWeb ? 'Paste a link above.' : 'Share a video or song to Snag, or paste a link above.',
                       textAlign: TextAlign.center, style: TextStyle(color: c.muted)),
                 ]),
               ),

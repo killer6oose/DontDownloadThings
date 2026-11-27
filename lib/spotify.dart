@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
 import 'native.dart';
 
 /// Spotify music is DRM protected, so Snag never downloads from Spotify.
@@ -52,7 +50,7 @@ Future<SpotifyList> loadSpotify(String text, {String clientId = '', String secre
   if (link == null) {
     final short = RegExp(r'https?://spotify\.link/\S+').firstMatch(text)?.group(0);
     if (short != null) {
-      final res = await http.get(Uri.parse(short)).timeout(const Duration(seconds: 15));
+      final res = await Native.fetch(Uri.parse(short)).timeout(const Duration(seconds: 15));
       link = parseSpotifyLink(res.body);
     }
   }
@@ -65,9 +63,9 @@ Future<SpotifyList> loadSpotify(String text, {String clientId = '', String secre
       // Fall through to the embed page below.
     }
   }
-  final res = await http.get(Uri.parse('https://open.spotify.com/embed/${link.type}/${link.id}'), headers: {
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36'
-  }).timeout(const Duration(seconds: 20));
+  final res = await Native.fetch(Uri.parse('https://open.spotify.com/embed/${link.type}/${link.id}'),
+          headers: {'User-Agent': 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36'})
+      .timeout(const Duration(seconds: 20));
   if (res.statusCode != 200) throw 'Spotify said no (error ${res.statusCode}). Is the playlist public?';
   final list = parseEmbedPage(res.body);
   if (list == null || list.tracks.isEmpty) {
@@ -78,8 +76,9 @@ Future<SpotifyList> loadSpotify(String text, {String clientId = '', String secre
 
 Future<SpotifyList> _fromApi(SpotifyLink link, String clientId, String secret) async {
   final auth = base64Encode(utf8.encode('$clientId:$secret'));
-  final tokenRes = await http.post(
+  final tokenRes = await Native.fetch(
     Uri.parse('https://accounts.spotify.com/api/token'),
+    method: 'POST',
     headers: {'Authorization': 'Basic $auth', 'Content-Type': 'application/x-www-form-urlencoded'},
     body: 'grant_type=client_credentials',
   );
@@ -88,7 +87,7 @@ Future<SpotifyList> _fromApi(SpotifyLink link, String clientId, String secret) a
   final headers = {'Authorization': 'Bearer $token'};
 
   Future<Map<String, dynamic>> get(String url) async {
-    final res = await http.get(Uri.parse(url), headers: headers).timeout(const Duration(seconds: 20));
+    final res = await Native.fetch(Uri.parse(url), headers: headers).timeout(const Duration(seconds: 20));
     if (res.statusCode != 200) throw 'Spotify API error ${res.statusCode}';
     return Map<String, dynamic>.from(jsonDecode(res.body) as Map);
   }

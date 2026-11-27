@@ -118,3 +118,7 @@ class Desktop {
     return lines.lastWhere((l) => l.contains('ERROR'), orElse: () => lines.isEmpty ? 'yt-dlp failed' : lines.last);
   }
 }
+
+/// The default save folder on the PC, e.g. C:\Users\You\Music\Snag.
+String homeFolder(String folder) =>
+    '${Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'] ?? '.'}${Platform.pathSeparator}$folder${Platform.pathSeparator}Snag';

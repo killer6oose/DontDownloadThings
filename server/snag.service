@@ -1,0 +1,21 @@
+# systemd unit for the Snag server. See SETUP.md, "The web page on the Pi".
+[Unit]
+Description=Snag music and video downloader
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=snag
+Environment=SNAG_MEDIA=/srv/snag
+Environment=SNAG_PORT=8790
+ExecStart=/opt/snag/venv/bin/python /opt/snag/snag_server.py
+Restart=on-failure
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+# Downloads go here, and Settings > Update yt-dlp writes to the venv.
+ReadWritePaths=/srv/snag /opt/snag/venv
+
+[Install]
+WantedBy=multi-user.target

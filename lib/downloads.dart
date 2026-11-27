@@ -218,6 +218,7 @@ class Job {
 class Downloads extends ChangeNotifier {
   static const _maxRunning = 2;
   static const _historyKey = 'history';
+  static const _activeKey = 'active';
   static const _historyLimit = 300;
 
   final Prefs prefs;
@@ -233,6 +234,20 @@ class Downloads extends ChangeNotifier {
         // A damaged history isn't worth crashing over. Start a fresh one.
       }
     }
+    // The web page's downloads carry on on the Pi when the page is closed or
+    // reloaded, so pick them up again. Asking the Pi for the same id gets the
+    // download already under way rather than a new one.
+    final unfinished = prefs.raw.getString(_activeKey);
+    if (Native.isWeb && unfinished != null) {
+      try {
+        for (final j in jsonDecode(unfinished) as List) {
+          active.add(Job.fromJson(Map<String, dynamic>.from(j as Map))..state = JobState.queued);
+        }
+      } catch (_) {
+        // Nothing worth saving.
+      }
+      _next();
+    }
   }
 
   int _counter = 0;
@@ -240,6 +255,7 @@ class Downloads extends ChangeNotifier {
   void add(String url, String title, Options options, {String? group, TrackTags? tags}) {
     final id = '${DateTime.now().millisecondsSinceEpoch}-${_counter++}';
     active.add(Job(id: id, url: url, title: title, options: options, group: group, tags: tags));
+    _saveActive();
     notifyListeners();
     _next();
   }
@@ -311,11 +327,16 @@ class Downloads extends ChangeNotifier {
 
   void _finish(Job job) {
     active.remove(job);
+    _saveActive();
     history.insert(0, job);
     if (history.length > _historyLimit) history.removeRange(_historyLimit, history.length);
     _saveHistory();
     notifyListeners();
     _next();
+  }
+
+  void _saveActive() {
+    if (Native.isWeb) prefs.raw.setString(_activeKey, jsonEncode(active.map((j) => j.toJson()).toList()));
   }
 
   void _saveHistory() => prefs.raw.setString(_historyKey, jsonEncode(history.map((j) => j.toJson()).toList()));

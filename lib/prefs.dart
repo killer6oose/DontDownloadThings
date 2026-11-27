@@ -1,7 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'desktop.dart' if (dart.library.js_interop) 'desktop_web.dart';
+import 'native.dart';
 
 /// Everything on the Settings screen, saved on this phone only.
 class Prefs extends ChangeNotifier {
@@ -29,11 +30,9 @@ class Prefs extends ChangeNotifier {
   String get subtitleLangs => _p.getString('subtitleLangs') ?? 'en.*';
   // The phone saves through Android's media store, so its folders are
   // relative (Music/Snag). The PC saves to a full path in your user folder.
-  String get audioFolder => _p.getString('audioFolder') ?? (Platform.isAndroid ? 'Music/Snag' : _home('Music'));
-  String get videoFolder => _p.getString('videoFolder') ?? (Platform.isAndroid ? 'Movies/Snag' : _home('Videos'));
-
-  static String _home(String folder) =>
-      '${Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'] ?? '.'}${Platform.pathSeparator}$folder${Platform.pathSeparator}Snag';
+  // The web page doesn't use these: the Pi decides where its files go.
+  String get audioFolder => _p.getString('audioFolder') ?? (Native.isPhone ? 'Music/Snag' : homeFolder('Music'));
+  String get videoFolder => _p.getString('videoFolder') ?? (Native.isPhone ? 'Movies/Snag' : homeFolder('Videos'));
   String get spotifyId => _p.getString('spotifyId') ?? '';
   String get spotifySecret => _p.getString('spotifySecret') ?? '';
   String get theme => _p.getString('theme') ?? 'lagoon';

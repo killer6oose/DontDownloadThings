@@ -79,13 +79,35 @@ jobs:
           name: windows
           path: snag_latest.zip
 
+  # The web page and its server for the Pi, in one zip.
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build web --release
+      - run: |
+          mkdir -p snag_web
+          cp -r build/web snag_web/web
+          cp server/* snag_web/
+          cd snag_web && zip -qr ../snag_web.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: snag_web.zip
+
   release:
-    needs: [android, windows]
+    needs: [android, windows, web]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-      # The version file the apps check, ready to copy to hub.adgoose/apps.
+      # The version file the apps check, ready to copy to hub.adgoose/files.
       - name: Read version
         id: version
         run: |
@@ -99,9 +121,11 @@ jobs:
           body: |
             Phone: download snag_latest.apk on the phone and open it.
             PC: download snag_latest.zip, unzip it anywhere (e.g. Documents\Snag) and run Snag.exe.
-            Self-updates: copy all 3 files to hub.adgoose/apps on the Pi.
+            Pi web page (snag.adgoose): snag_web.zip, see SETUP.md.
+            Self-updates: copy snag_latest.apk, snag_latest.zip and snag_version.txt to hub.adgoose/files on the Pi.
           files: |
             android/snag_latest.apk
             windows/snag_latest.zip
+            web/snag_web.zip
             snag_version.txt
           make_latest: true

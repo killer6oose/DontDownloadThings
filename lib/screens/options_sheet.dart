@@ -122,7 +122,11 @@ class _OptionsSheetState extends State<_OptionsSheet> {
                   color: c.ring,
                   child: _thumb.isEmpty
                       ? Icon(_o.audio ? Icons.music_note : Icons.movie_outlined, color: c.muted)
-                      : Image.network(_thumb, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
+                      : Image.network(_thumb,
+                          fit: BoxFit.cover,
+                          // Lets the web page show thumbnails from sites that don't allow it otherwise.
+                          webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                          errorBuilder: (_, __, ___) => const SizedBox()),
                 ),
               ),
               const SizedBox(width: 12),
@@ -179,7 +183,10 @@ class _OptionsSheetState extends State<_OptionsSheet> {
                 onChanged: (v) => setState(() => _o.playlist = v),
               ),
             const SizedBox(height: 8),
-            Text('Saves to ${_o.audio ? prefs.audioFolder : prefs.videoFolder}',
+            Text(
+                Native.isWeb
+                    ? 'Saves to the Pi\'s ${_o.audio ? 'Music' : 'Videos'} folder and to this device'
+                    : 'Saves to ${_o.audio ? prefs.audioFolder : prefs.videoFolder}',
                 style: TextStyle(fontSize: 13, color: c.muted)),
             const SizedBox(height: 12),
             FilledButton(

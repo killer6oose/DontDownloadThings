@@ -42,7 +42,8 @@ bool _checked = false;
 /// offers the update if the server has a newer one. Returns a short status
 /// for the Settings screen.
 Future<String> checkForUpdate(BuildContext context, {bool force = false}) async {
-  if (!Platform.isAndroid && !Platform.isWindows) return '';
+  // The web page is updated on the Pi, so it never checks.
+  if (Native.isWeb || (!Platform.isAndroid && !Platform.isWindows)) return '';
   if (_checked && !force) return '';
   _checked = true;
   try {

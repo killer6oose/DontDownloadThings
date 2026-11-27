@@ -66,3 +66,52 @@ The phone and PC apps check on launch and from Settings > Check for update.
 ```
 flutter test
 ```
+
+## The Web Page On The Pi
+
+http://snag.adgoose is the same app as a web page, for anyone on the tailnet. The Pi does the downloading: each finished file is kept in `/srv/snag/Music` or `/srv/snag/Videos` and is also saved to whatever device the page is open on. History is kept per browser.
+
+Each release has `snag_web.zip`, which holds the page (`web/`) and the server files. On the Pi (64-bit Pi OS):
+
+1. Install what yt-dlp needs. Deno is how yt-dlp gets past YouTube's JavaScript checks:
+
+   ```
+   sudo apt install python3-venv ffmpeg unzip
+   curl -fsSL https://deno.land/install.sh | sudo DENO_INSTALL=/usr/local sh
+   ```
+
+2. Make a user for the server, its folders, and yt-dlp:
+
+   ```
+   sudo useradd --system --home /srv/snag --shell /usr/sbin/nologin snag
+   sudo mkdir -p /opt/snag /srv/snag
+   sudo chown snag:snag /opt/snag /srv/snag
+   sudo -u snag python3 -m venv /opt/snag/venv
+   sudo -u snag /opt/snag/venv/bin/pip install "yt-dlp[default]"
+   ```
+
+3. Unzip the release and put the files in place:
+
+   ```
+   unzip snag_web.zip -d snag_web
+   sudo cp snag_web/snag_server.py /opt/snag/
+   sudo rm -rf /var/www/snag && sudo cp -r snag_web/web /var/www/snag
+   sudo cp snag_web/snag.service /etc/systemd/system/
+   sudo cp snag_web/apache-snag.conf /etc/apache2/sites-available/snag.conf
+   ```
+
+4. Start it:
+
+   ```
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now snag
+   sudo a2enmod proxy proxy_http rewrite headers
+   sudo a2ensite snag
+   sudo systemctl reload apache2
+   ```
+
+5. Add `snag.adgoose` to the Samba DNS, pointing at the Pi, the same way as recipe.adgoose.
+
+To update the page later, repeat step 3 and run `sudo systemctl restart snag`. yt-dlp updates from the page's Settings > Update yt-dlp, and the page does that by itself once a day.
+
+The server's settings are in `snag.service`: `SNAG_MEDIA` (where files go, default `/srv/snag`) and `SNAG_PORT` (default 8790, which must match `apache-snag.conf`). If something fails, `journalctl -u snag` shows why.
