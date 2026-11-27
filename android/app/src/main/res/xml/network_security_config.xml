@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Updates come from the family Pi over plain http on the home network.
-     Everything else stays https only. -->
+<!-- The family sites use https certificates from the ADGoose Home CA, so
+     trust it as well as the normal ones. -->
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">hub.adgoose</domain>
-    </domain-config>
+    <base-config>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/adgoose_home_ca" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>

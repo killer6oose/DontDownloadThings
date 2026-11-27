@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'downloads.dart';
+import 'home_ca.dart' if (dart.library.js_interop) 'home_ca_web.dart';
 import 'native.dart';
 import 'prefs.dart';
 import 'screens/home.dart';
@@ -9,6 +11,7 @@ import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  trustHomeCa((await rootBundle.load('assets/certs/adgoose-home-ca.crt')).buffer.asUint8List());
   Native.listen();
   final prefs = await Prefs.load();
   runApp(MultiProvider(

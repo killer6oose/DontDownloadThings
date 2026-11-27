@@ -55,7 +55,9 @@ keyPassword=...
 
 1. Bump `version:` in pubspec.yaml (e.g. `1.0.1+2`) and push to main.
 2. GitHub builds the release with 3 files: `snag_latest.apk`, `snag_latest.zip` and `snag_version.txt`.
-3. Copy all 3 into the apps folder served at http://hub.adgoose/apps/ on the Pi.
+3. Copy all 3 into the apps folder served at https://hub.adgoose/apps/ on the Pi.
+
+hub.adgoose uses a certificate from the ADGoose Home CA. Snag has that CA built in (`assets/certs/adgoose-home-ca.crt`, and a copy for Android in `android/app/src/main/res/raw/`), so if the CA is ever replaced, swap both files and release an update while the old certificate still works.
 
 The phone and PC apps check on launch and from Settings > Check for update.
 
