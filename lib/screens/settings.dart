@@ -238,23 +238,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3))
                   : TextButton(onPressed: _updateYtDlp, child: const Text('Update')),
             ),
-            if (!Native.isPhone)
-              ListTile(
-                title: Text('Snag $_appVersion'),
-                subtitle: const Text('New versions are on GitHub, under DontDownloadThings releases'),
-              )
-            else
-              ListTile(
-                title: Text('Snag $_appVersion'),
-                subtitle: _updateStatus.isEmpty ? null : Text(_updateStatus),
-                trailing: TextButton(
-                  onPressed: () async {
-                    final status = await checkForUpdate(context, force: true);
-                    if (mounted) setState(() => _updateStatus = status);
-                  },
-                  child: const Text('Check for update'),
-                ),
+            ListTile(
+              title: Text('Snag $_appVersion'),
+              subtitle: _updateStatus.isEmpty ? null : Text(_updateStatus),
+              trailing: TextButton(
+                onPressed: () async {
+                  final status = await checkForUpdate(context, force: true);
+                  if (mounted) setState(() => _updateStatus = status);
+                },
+                child: const Text('Check for update'),
               ),
+            ),
           ]),
           Text(
             'Only download things you have the right to keep, like your own videos, free music, or Creative Commons content.',

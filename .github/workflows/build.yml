@@ -45,11 +45,11 @@ jobs:
       - run: flutter pub get
       - run: flutter test
       - run: flutter build apk --release --target-platform android-arm64
-      - run: mv build/app/outputs/flutter-apk/app-release.apk Snag.apk
+      - run: mv build/app/outputs/flutter-apk/app-release.apk snag_latest.apk
       - uses: actions/upload-artifact@v4
         with:
           name: android
-          path: Snag.apk
+          path: snag_latest.apk
 
   windows:
     runs-on: windows-latest
@@ -73,11 +73,11 @@ jobs:
           Invoke-WebRequest https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -OutFile ffmpeg.zip
           Expand-Archive ffmpeg.zip -DestinationPath ffmpeg
           Get-ChildItem ffmpeg -Recurse -Include ffmpeg.exe, ffprobe.exe | Copy-Item -Destination "$release/tools"
-          Compress-Archive -Path "$release/*" -DestinationPath Snag-Windows.zip
+          Compress-Archive -Path "$release/*" -DestinationPath snag_latest.zip
       - uses: actions/upload-artifact@v4
         with:
           name: windows
-          path: Snag-Windows.zip
+          path: snag_latest.zip
 
   release:
     needs: [android, windows]
@@ -85,17 +85,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
+      # The version file the apps check, ready to copy to hub.adgoose/apps.
       - name: Read version
         id: version
-        run: echo "version=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "$version" > snag_version.txt
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Snag ${{ steps.version.outputs.version }}
           body: |
-            Phone: download Snag.apk on the phone and open it.
-            PC: download Snag-Windows.zip, unzip it anywhere (e.g. Documents\Snag) and run Snag.exe.
+            Phone: download snag_latest.apk on the phone and open it.
+            PC: download snag_latest.zip, unzip it anywhere (e.g. Documents\Snag) and run Snag.exe.
+            Self-updates: copy all 3 files to hub.adgoose/apps on the Pi.
           files: |
-            android/Snag.apk
-            windows/Snag-Windows.zip
+            android/snag_latest.apk
+            windows/snag_latest.zip
+            snag_version.txt
           make_latest: true

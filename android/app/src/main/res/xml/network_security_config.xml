@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Updates come from the family Pi over plain http on the home network.
+     Everything else stays https only. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">hub.adgoose</domain>
+    </domain-config>
+</network-security-config>

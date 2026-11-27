@@ -31,10 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // Start the daily yt-dlp update now so it's done before the first download.
     Native.freshYtDlp();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!Native.isPhone) return;
-      // A link shared to Snag before it was running.
-      final first = await Native.channel.invokeMethod<String>('initialIntent');
-      if (first != null && mounted) _open(first);
+      if (Native.isPhone) {
+        // A link shared to Snag before it was running.
+        final first = await Native.channel.invokeMethod<String>('initialIntent');
+        if (first != null && mounted) _open(first);
+      }
       if (mounted) checkForUpdate(context);
     });
   }

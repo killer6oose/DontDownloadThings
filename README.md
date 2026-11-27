@@ -8,8 +8,8 @@ Only download things you have the right to keep: your own videos, free music, Cr
 
 Open the [latest release](https://github.com/killer6oose/DontDownloadThings/releases/latest):
 
-- Phone: download `Snag.apk` on the phone and open it (Android 10 or newer, 64-bit).
-- PC: download `Snag-Windows.zip`, unzip it anywhere (e.g. Documents\Snag) and run `Snag.exe`. yt-dlp and ffmpeg are in the `tools` folder beside it.
+- Phone: download `snag_latest.apk` on the phone and open it (Android 10 or newer, 64-bit).
+- PC: download `snag_latest.zip`, unzip it anywhere (e.g. Documents\Snag) and run `Snag.exe`. yt-dlp and ffmpeg are in the `tools` folder beside it.
 
 Every push to `main` builds both and publishes a release named after the version in `pubspec.yaml`, so bump the version for each change you want to ship.
 
@@ -20,7 +20,7 @@ Every push to `main` builds both and publishes a release named after the version
 - Spotify music is DRM protected, so Snag never downloads from Spotify. For a Spotify playlist, album or track it reads the track names, finds each song on YouTube, flags any match that looks wrong (different length, live or cover version) and downloads the YouTube copy with Spotify's title, artist and album in the tags.
 - Settings hold the defaults (MP3 320, 1080p MP4, save folders, theme). The options sheet can change them for one download.
 - yt-dlp can update itself from Settings. Do that when a site stops working.
-- The phone app checks https://cronotech.org/hattons/snag/version.txt for updates, same as NomBook and 1,000 Hours. The PC version gets new releases from GitHub.
+- Both apps check http://hub.adgoose/apps/snag_version.txt for updates, like the other family apps, and download snag_latest.apk (phone) or snag_latest.zip (PC) from beside it.
 
 ## Code Map
 

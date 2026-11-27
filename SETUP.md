@@ -53,12 +53,11 @@ keyPassword=...
 
 ## Publishing An Update
 
-1. Bump `version:` in pubspec.yaml (e.g. `1.0.1+2`).
-2. `flutter build apk --release`
-3. Upload the APK to https://cronotech.org/hattons/snag/ as `Snag_Latest.apk`.
-4. Put the same version on line 1 of `version.txt` in that folder.
+1. Bump `version:` in pubspec.yaml (e.g. `1.0.1+2`) and push to main.
+2. GitHub builds the release with 3 files: `snag_latest.apk`, `snag_latest.zip` and `snag_version.txt`.
+3. Copy all 3 into the apps folder served at http://hub.adgoose/apps/ on the Pi.
 
-Phones check on launch and from Settings > Check for update.
+The phone and PC apps check on launch and from Settings > Check for update.
 
 ## Tests
 

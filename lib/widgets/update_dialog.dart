@@ -1,23 +1,39 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../native.dart';
 
-/// Self-updates from our own server instead of the Play Store, the same way
-/// 1,000 Hours does.
+/// Self-updates from the family apps folder on the Pi instead of an app store,
+/// like the other family apps.
 ///
-/// version.txt holds the latest version on line 1, matching pubspec.yaml
-/// (e.g. `1.0.1+2`). The APK sits beside it as Snag_Latest.apk.
-const _base = 'https://cronotech.org/hattons/snag';
-const _versionUrl = '$_base/version.txt';
-const _apkUrl = '$_base/Snag_Latest.apk';
+/// snag_version.txt holds the latest version on line 1, matching pubspec.yaml
+/// (e.g. `1.0.1+2`). Beside it are snag_latest.apk for phones and
+/// snag_latest.zip (the Windows release zip) for PCs.
+const _base = 'http://hub.adgoose/apps';
+const _versionUrl = '$_base/snag_version.txt';
+const _apkUrl = '$_base/snag_latest.apk';
+const _zipUrl = '$_base/snag_latest.zip';
 const _channel = Native.channel;
+
+/// Version and install details. The phone asks Android; the PC reads the
+/// version built into Snag.exe and can always replace its own files.
+Future<Map<String, dynamic>> _info() async {
+  if (Platform.isAndroid) return Map<String, dynamic>.from(await _channel.invokeMethod('info'));
+  final p = await PackageInfo.fromPlatform();
+  return {
+    'versionName': p.version,
+    'versionCode': p.buildNumber,
+    'cacheDir': Directory.systemTemp.path,
+    'canInstall': true
+  };
+}
+
 const _lastVersionKey = 'last_run_version';
 
 bool _checked = false;
@@ -26,11 +42,11 @@ bool _checked = false;
 /// offers the update if the server has a newer one. Returns a short status
 /// for the Settings screen.
 Future<String> checkForUpdate(BuildContext context, {bool force = false}) async {
-  if (defaultTargetPlatform != TargetPlatform.android) return '';
+  if (!Platform.isAndroid && !Platform.isWindows) return '';
   if (_checked && !force) return '';
   _checked = true;
   try {
-    final info = Map<String, dynamic>.from(await _channel.invokeMethod('info'));
+    final info = await _info();
     final name = info['versionName'] as String;
     final current = '$name+${info['versionCode']}';
 
@@ -57,7 +73,7 @@ Future<String> checkForUpdate(BuildContext context, {bool force = false}) async 
       builder: (_) => _UpdateDialog(
         current: name,
         latest: latest.split('+').first,
-        apkUrl: _apkUrl,
+        apkUrl: Platform.isAndroid ? _apkUrl : _zipUrl,
         cacheDir: info['cacheDir'] as String,
       ),
     );
@@ -111,7 +127,7 @@ class _UpdateDialogState extends State<_UpdateDialog> with WidgetsBindingObserve
   Timer? _countdown;
   http.Client? _client;
   StreamSubscription<String>? _installFailed;
-  late final File _file = File('${widget.cacheDir}/update.apk');
+  late final File _file = File('${widget.cacheDir}/snag_update.${Platform.isAndroid ? 'apk' : 'zip'}');
   late final AnimationController _bounce = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))
     ..repeat(reverse: true);
 
@@ -149,7 +165,7 @@ class _UpdateDialogState extends State<_UpdateDialog> with WidgetsBindingObserve
   }
 
   Future<void> _begin() async {
-    final info = Map<String, dynamic>.from(await _channel.invokeMethod('info'));
+    final info = await _info();
     if (!mounted) return;
     if (info['canInstall'] != true) {
       setState(() => _stage = _Stage.permission);
@@ -204,6 +220,19 @@ class _UpdateDialogState extends State<_UpdateDialog> with WidgetsBindingObserve
     _countdown?.cancel();
     setState(() => _stage = _Stage.installing);
     try {
+      if (Platform.isWindows) {
+        // Snag.exe can't overwrite itself while running, so a small batch
+        // file waits for it to close, unzips the update over the install
+        // folder and starts it again.
+        final dir = File(Platform.resolvedExecutable).parent.path;
+        final script = File('${widget.cacheDir}\\snag_update.bat');
+        await script.writeAsString('@echo off\r\n'
+            'timeout /t 2 /nobreak >nul\r\n'
+            'powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath \'${_file.path}\' -DestinationPath \'$dir\'"\r\n'
+            'start "" "$dir\\Snag.exe"\r\n');
+        await Process.start('cmd', ['/c', script.path], mode: ProcessStartMode.detached);
+        exit(0);
+      }
       await _channel.invokeMethod('install', {'path': _file.path});
       // Android now asks to confirm (first time only) and replaces the app.
     } on PlatformException catch (e) {
